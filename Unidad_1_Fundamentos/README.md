@@ -1,16 +1,20 @@
-# Unidad 1: Fundamentos de Spring Boot 🚀
+# Unidad 1: Fundamentos de Spring Boot y Persistencia JPA 🚀
 
-Proyecto desarrollado para la asignatura **Programación IV** (Tecnicatura Universitaria en Programación - UTN).
+**Tecnicatura Universitaria en Programación — Universidad Tecnológica Nacional (UTN)**  
+**Cátedra:** Programación IV  
+**Repositorio Oficial:** [https://github.com/brianrios97/UTN-Programacion-IV](https://github.com/brianrios97/UTN-Programacion-IV)  
+
+---
 
 ## 📌 Descripción del Proyecto
-Aplicación desarrollada en Spring Boot que implementa el modelo de dominio para un sistema de gestión de pedidos y productos, aplicando arquitectura por capas, mapeo objeto-relacional (JPA) y transferencia de datos mediante DTOs.
+Aplicación desarrollada en **Spring Boot** que implementa el modelo de dominio para un sistema de gestión de pedidos y productos, aplicando arquitectura por capas, mapeo objeto-relacional (JPA), persistencia de datos en memoria (H2) y transferencia de información mediante DTOs.
 
 ---
 
 ## 🛠️ Tecnologías Utilizadas
-* **Java 21**
-* **Spring Boot**
-* **Spring Data JPA**
+* **Java 21 / 24**
+* **Spring Boot 3.2.5**
+* **Spring Data JPA / Hibernate**
 * **H2 Database** (Base de datos en memoria)
 * **Lombok**
 * **Maven**
@@ -34,9 +38,30 @@ Al iniciar la aplicación, la clase `DataInitializer` persiste de forma automát
 3. Creación e inserción de un usuario de prueba.
 4. Generación de un pedido con cálculo automático de totales mediante la interfaz `Calculable` y persistencia en cascada (`CascadeType.ALL`).
 
-### 🌐 Consola Web H2
-Para verificar visualmente los registros en la base de datos:
-* **URL:** `http://localhost:8080/h2-console`
+---
+
+## 🌐 Consola Web H2
+Para verificar visualmente las tablas y los registros en la base de datos:
+* **URL:** [http://localhost:8080/h2-console](http://localhost:8080/h2-console)
 * **JDBC URL:** `jdbc:h2:mem:testdb`
 * **User Name:** `sa`
 * **Password:** *(En blanco)*
+
+---
+
+## 🚀 Instrucciones de Ejecución
+
+### Clonar repositorio:
+```bash
+git clone https://github.com/brianrios97/UTN-Programacion-IV.git
+cd UTN-Programacion-IV/Unidad_1_Fundamentos
+```
+
+### Ejecutar con Maven Wrapper:
+```bash
+./mvnw spring-boot:run
+```
+o en Windows:
+```powershell
+.\mvnw.cmd spring-boot:run
+```
