@@ -1,4 +1,4 @@
-﻿from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field
 from typing import Optional
 
 class ProveedorBase(BaseModel):
@@ -13,10 +13,8 @@ class ProveedorBase(BaseModel):
 class ProveedorCreate(ProveedorBase):
     pass
 
-
 class ProveedorRead(ProveedorBase):
     id: int
-
 
 class ProveedorUpdate(BaseModel):
     codigo: Optional[str] = Field(None, min_length=1)

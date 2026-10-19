@@ -1,10 +1,9 @@
-﻿from typing import List, Optional
+from typing import List, Optional
 from .schemas import ProveedorCreate, ProveedorRead, ProveedorUpdate
 
 # "Base de datos" en memoria
 db_proveedores: List[ProveedorRead] = []
 id_counter = 1
-
 
 def buscar_por_codigo(codigo: str) -> Optional[ProveedorRead]:
     for p in db_proveedores:
@@ -20,13 +19,11 @@ def crear(data: ProveedorCreate) -> ProveedorRead:
     id_counter += 1
     return nuevo
 
-
 def obtener_por_id(id: int) -> Optional[ProveedorRead]:
     for p in db_proveedores:
         if p.id == id:
             return p
     return None
-
 
 def obtener_todos(skip: int = 0, limit: int = 10, activo: Optional[bool] = None) -> List[ProveedorRead]:
     resultado = db_proveedores
@@ -37,7 +34,6 @@ def obtener_todos(skip: int = 0, limit: int = 10, activo: Optional[bool] = None)
 
     # Aplicamos paginación usando "slicing" (rebanado) de Python
     return resultado[skip : skip + limit]
-
 
 def actualizar_total(id: int, data: ProveedorCreate) -> Optional[ProveedorRead]:
     for index, p in enumerate(db_proveedores):
