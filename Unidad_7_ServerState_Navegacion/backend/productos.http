@@ -1,0 +1,148 @@
+﻿@baseUrl = http://127.0.0.1:8000
+
+### ====================================================================
+### 1. ESTADO DE LA API
+### ====================================================================
+
+### Verificar estado
+GET {{baseUrl}}/
+
+
+### ====================================================================
+### 2. CRUD DE CATEGORÍAS
+### ====================================================================
+
+### 2.1. Listar Categorías
+GET {{baseUrl}}/categorias/
+
+### 2.2. Crear Categoría 1 (Pizzas)
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Pizzas",
+  "descripcion": "Pizzas artesanales con masa madre y mozzarella fresca"
+}
+
+### 2.3. Crear Categoría 2 (Hamburguesas)
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Hamburguesas",
+  "descripcion": "Hamburguesas gourmet con medallón de blend especial"
+}
+
+### 2.4. Crear Categoría 3 (Bebidas)
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Bebidas",
+  "descripcion": "Gaseosas, jugos naturales y cervezas artesanales"
+}
+
+### 2.5. Obtener Categoría por ID
+GET {{baseUrl}}/categorias/1
+
+### 2.6. Actualizar Categoría
+PUT {{baseUrl}}/categorias/1
+Content-Type: application/json
+
+{
+  "descripcion": "Pizzas artesanales premium al horno de leña"
+}
+
+### 2.7. Error 409: Nombre duplicado
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Pizzas",
+  "descripcion": "Intento duplicado"
+}
+
+### 2.8. Error 404: Categoría inexistente
+GET {{baseUrl}}/categorias/999
+
+
+### ====================================================================
+### 3. CRUD DE PRODUCTOS (UML: precio_base float >= 0, imagenes_url [])
+### ====================================================================
+
+### 3.1. Listar Productos
+GET {{baseUrl}}/productos/
+
+### 3.2. Crear Producto con Categorías vinculadas (1 y 3)
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Pizza Especial Napolitana",
+  "descripcion": "Mozzarella, rodajas de tomate natural, ajo y albahaca fresca",
+  "precio_base": 12500.50,
+  "imagenes_url": [
+    "https://images.unsplash.com/photo-1513104890138-7c749659a591"
+  ],
+  "disponible": true,
+  "categoria_ids": [1]
+}
+
+### 3.3. Crear Segundo Producto (Hamburguesa)
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Hamburguesa Doble Cheddar Bacon",
+  "descripcion": "Doble carne 120g, cuádruple cheddar y bacon crocante",
+  "precio_base": 11800.00,
+  "imagenes_url": [
+    "https://images.unsplash.com/photo-1568901346375-23c9450c58cd"
+  ],
+  "disponible": true,
+  "categoria_ids": [2]
+}
+
+### 3.4. Obtener Producto por ID (con categorías asociadas)
+GET {{baseUrl}}/productos/1
+
+### 3.5. Actualizar Producto
+PUT {{baseUrl}}/productos/1
+Content-Type: application/json
+
+{
+  "precio_base": 13900.00,
+  "disponible": true
+}
+
+### 3.6. Error 422: Validación Pydantic (precio_base negativo)
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Producto Invalido",
+  "descripcion": "Falla por precio negativo",
+  "precio_base": -50.00,
+  "imagenes_url": [],
+  "disponible": true
+}
+
+
+### ====================================================================
+### 4. RELACIÓN N:N: Producto <-> Categoría (Tabla Intermedia)
+### ====================================================================
+
+### 4.1. Asociar Producto 1 a Categoría 3 (Bebidas / Combo)
+POST {{baseUrl}}/productos/1/categorias/3
+
+### 4.2. Error 409: Relación ya existente
+POST {{baseUrl}}/productos/1/categorias/3
+
+### 4.3. Desasociar Producto 1 de Categoría 3
+DELETE {{baseUrl}}/productos/1/categorias/3
+
+### 4.4. Eliminar Producto (Responde 204 No Content)
+DELETE {{baseUrl}}/productos/2
+
+### 4.5. Eliminar Categoría (Responde 204 No Content)
+DELETE {{baseUrl}}/categorias/2
