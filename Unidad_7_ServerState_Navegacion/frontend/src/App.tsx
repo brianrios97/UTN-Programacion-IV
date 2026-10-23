@@ -16,7 +16,7 @@ function App() {
         </Routes>
       </main>
       <footer className="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500 bg-slate-950/60">
-        <p>Programaci?n IV ? Unidad 7: Server State &amp; Navegaci?n ? UTN TUPaD</p>
+        <p>Programacion IV - Unidad 7: Server State &amp; Navegacion - UTN TUPaD</p>
       </footer>
     </div>
   );
