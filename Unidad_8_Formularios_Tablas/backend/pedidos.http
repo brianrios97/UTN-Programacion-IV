@@ -1,0 +1,180 @@
+@baseUrl = http://127.0.0.1:8000
+
+### ====================================================================
+### 1. ESTADO DE LA API Y M?DULOS DISPONIBLES
+### ====================================================================
+
+### 1.1. Verificar estado de la API
+GET {{baseUrl}}/
+
+### ====================================================================
+### 2. PREPARACI?N DE DATOS (CATEGOR?A, PRODUCTO E INGREDIENTES)
+### ====================================================================
+
+### 2.1. Crear Categor?a para pruebas
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Pizzas Gourmet",
+  "descripcion": "Pizzas al horno de barro con masa madre"
+}
+
+### 2.2. Crear Producto 1 (Pizza Margherita)
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Pizza Margherita",
+  "descripcion": "Salsa de tomate italiano, mozzarella fior di latte y albahaca fresca",
+  "precio_base": 8500.0,
+  "imagenes_url": ["https://images.unsplash.com/photo-1513104890138-7c749659a591"],
+  "disponible": true,
+  "categoria_ids": [1]
+}
+
+### 2.3. Crear Producto 2 (Pizza Cuatro Quesos)
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Pizza Cuatro Quesos",
+  "descripcion": "Mozzarella, gorgonzola, parmesano y fontina",
+  "precio_base": 9800.0,
+  "imagenes_url": ["https://images.unsplash.com/photo-1574071318508-1cdbab80d002"],
+  "disponible": true,
+  "categoria_ids": [1]
+}
+
+### 2.4. Crear Ingrediente
+POST {{baseUrl}}/ingredientes/
+Content-Type: application/json
+
+{
+  "nombre": "Albahaca fresca"
+}
+
+### 2.5. Listar Ingredientes
+GET {{baseUrl}}/ingredientes/
+
+### ====================================================================
+### 3. CRUD DE PEDIDOS (UNIT OF WORK + ATOMICIDAD)
+### ====================================================================
+
+### 3.1. Listar pedidos activos (inicialmente vac?o o con seed)
+GET {{baseUrl}}/pedidos/
+
+### 3.2. Crear Pedido exitoso (201 Created) - Unit of Work confirma la transacci?n
+# Crea Pedido + DetallePedido calculando el total autom?ticamente
+POST {{baseUrl}}/pedidos/
+Content-Type: application/json
+
+{
+  "detalles": [
+    {
+      "producto_id": 1,
+      "cantidad": 2
+    },
+    {
+      "producto_id": 2,
+      "cantidad": 1
+    }
+  ]
+}
+
+### 3.3. Obtener detalle de pedido por ID (200 OK con sus DetallePedido)
+GET {{baseUrl}}/pedidos/1
+
+### 3.4. Actualizar estado del pedido a CONFIRMADO (200 OK)
+PUT {{baseUrl}}/pedidos/1
+Content-Type: application/json
+
+{
+  "estado": "CONFIRMADO"
+}
+
+### 3.5. Actualizar estado del pedido a ENTREGADO (200 OK)
+PUT {{baseUrl}}/pedidos/1
+Content-Type: application/json
+
+{
+  "estado": "ENTREGADO"
+}
+
+### 3.6. Borrado l?gico del pedido (204 No Content)
+# Asigna deleted_at = now(); no se borra f?sicamente
+DELETE {{baseUrl}}/pedidos/1
+
+### 3.7. Verificar que el pedido eliminado ya no aparece en el listado activo
+GET {{baseUrl}}/pedidos/
+
+### 3.8. Intentar consultar el pedido eliminado (404 Not Found)
+GET {{baseUrl}}/pedidos/1
+
+### ====================================================================
+### 4. CASOS DE ERROR Y VALIDACI?N DE REGLAS DE NEGOCIO (RN)
+### ====================================================================
+
+### 4.1. Error 422: Pedido con lista de detalles vac?a (RN-12)
+POST {{baseUrl}}/pedidos/
+Content-Type: application/json
+
+{
+  "detalles": []
+}
+
+### 4.2. Error 422: Pedido con producto repetido en los detalles (RN-12)
+# Comprueba que un mismo producto no se repita en la lista
+POST {{baseUrl}}/pedidos/
+Content-Type: application/json
+
+{
+  "detalles": [
+    {
+      "producto_id": 1,
+      "cantidad": 1
+    },
+    {
+      "producto_id": 1,
+      "cantidad": 3
+    }
+  ]
+}
+
+### 4.3. Error 422: Detalle con cantidad menor a 1 (RN-12)
+POST {{baseUrl}}/pedidos/
+Content-Type: application/json
+
+{
+  "detalles": [
+    {
+      "producto_id": 1,
+      "cantidad": 0
+    }
+  ]
+}
+
+### 4.4. Error 404: Detalle con producto inexistente (Demuestra Rollback del Unit of Work)
+# No se guarda el pedido ni ning?n detalle al fallar la referencia
+POST {{baseUrl}}/pedidos/
+Content-Type: application/json
+
+{
+  "detalles": [
+    {
+      "producto_id": 999999,
+      "cantidad": 2
+    }
+  ]
+}
+
+### 4.5. Error 422: Estado de pedido no permitido (RN-13)
+PUT {{baseUrl}}/pedidos/1
+Content-Type: application/json
+
+{
+  "estado": "ESTADO_INVENTADO"
+}
+
+### 4.6. Error 404: Operar sobre pedido inexistente
+GET {{baseUrl}}/pedidos/99999
