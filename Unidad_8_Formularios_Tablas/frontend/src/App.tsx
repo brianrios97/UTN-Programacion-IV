@@ -10,11 +10,18 @@ function App() {
       <Navbar />
       <main className="flex-1">
         <Routes>
-          <Route path="/" element={<Navigate to="/categorias" replace />} />
+          <Route path="/" element={<Navigate to="/categories" replace />} />
+          {/* Rutas requeridas por la consigna (/categories, /products, /ingredients) */}
+          <Route path="/categories" element={<CategoriasPage />} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/ingredients" element={<IngredientesPage />} />
+          
+          {/* Alias en espa?ol para m?xima compatibilidad */}
           <Route path="/categorias" element={<CategoriasPage />} />
           <Route path="/productos" element={<ProductsPage />} />
           <Route path="/ingredientes" element={<IngredientesPage />} />
-          <Route path="*" element={<Navigate to="/categorias" replace />} />
+          
+          <Route path="*" element={<Navigate to="/categories" replace />} />
         </Routes>
       </main>
       <footer className="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500 bg-slate-950/60">
