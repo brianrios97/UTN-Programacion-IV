@@ -1,59 +1,63 @@
-﻿from typing import List, Optional
-from .schemas import ProveedorCreate, ProveedorRead, ProveedorUpdate
-
-# "Base de datos" en memoria
-db_proveedores: List[ProveedorRead] = []
-id_counter = 1
+﻿from sqlmodel import Session, select
+from typing import List, Optional
+from .models import Proveedor, ProveedorCreate
 
 
-def buscar_por_codigo(codigo: str) -> Optional[ProveedorRead]:
-    for p in db_proveedores:
-        if p.codigo == codigo:
-            return p
-    return None
+# 1. Crear proveedor (INSERT real en base de datos)
+def crear(session: Session, data: ProveedorCreate) -> Proveedor:
+    db_proveedor = Proveedor.model_validate(data)
+    session.add(db_proveedor)
+    session.commit()
+    session.refresh(db_proveedor)
+    return db_proveedor
 
 
-def crear(data: ProveedorCreate) -> ProveedorRead:
-    global id_counter
-    nuevo = ProveedorRead(id=id_counter, **data.model_dump())
-    db_proveedores.append(nuevo)
-    id_counter += 1
-    return nuevo
-
-
-def obtener_por_id(id: int) -> Optional[ProveedorRead]:
-    for p in db_proveedores:
-        if p.id == id:
-            return p
-    return None
-
-
-def obtener_todos(skip: int = 0, limit: int = 10, activo: Optional[bool] = None) -> List[ProveedorRead]:
-    resultado = db_proveedores
-
-    # Si nos pidieron filtrar por activo (True o False)
+# 2. Listar con paginacion y filtro opcional por activo
+def obtener_todos(
+    session: Session,
+    skip: int = 0,
+    limit: int = 10,
+    activo: Optional[bool] = None,
+) -> List[Proveedor]:
+    query = select(Proveedor)
     if activo is not None:
-        resultado = [p for p in resultado if p.activo == activo]
-
-    # Aplicamos paginación usando "slicing" (rebanado) de Python
-    return resultado[skip : skip + limit]
-
-
-def actualizar_total(id: int, data: ProveedorCreate) -> Optional[ProveedorRead]:
-    for index, p in enumerate(db_proveedores):
-        if p.id == id:
-            actualizado = ProveedorRead(id=id, **data.model_dump())
-            db_proveedores[index] = actualizado
-            return actualizado
-    return None
+        query = query.where(Proveedor.activo == activo)
+    query = query.offset(skip).limit(limit)
+    return list(session.exec(query).all())
 
 
-def desactivar(id: int) -> Optional[ProveedorRead]:
-    for index, p in enumerate(db_proveedores):
-        if p.id == id:
-            p_dict = p.model_dump()
-            p_dict["activo"] = False
-            actualizado = ProveedorRead(**p_dict)
-            db_proveedores[index] = actualizado
-            return actualizado
-    return None
+# 3. Buscar por ID
+def obtener_por_id(session: Session, id: int) -> Optional[Proveedor]:
+    return session.get(Proveedor, id)
+
+
+# 4. Buscar por codigo (unicidad)
+def buscar_por_codigo(session: Session, codigo: str) -> Optional[Proveedor]:
+    query = select(Proveedor).where(Proveedor.codigo == codigo)
+    return session.exec(query).first()
+
+
+# 5. Actualizar total (UPDATE)
+def actualizar_total(session: Session, id: int, data: ProveedorCreate) -> Optional[Proveedor]:
+    db_proveedor = session.get(Proveedor, id)
+    if not db_proveedor:
+        return None
+    datos_nuevos = data.model_dump()
+    for key, value in datos_nuevos.items():
+        setattr(db_proveedor, key, value)
+    session.add(db_proveedor)
+    session.commit()
+    session.refresh(db_proveedor)
+    return db_proveedor
+
+
+# 6. Borrado logico (desactivar)
+def desactivar(session: Session, id: int) -> Optional[Proveedor]:
+    db_proveedor = session.get(Proveedor, id)
+    if not db_proveedor:
+        return None
+    db_proveedor.activo = False
+    session.add(db_proveedor)
+    session.commit()
+    session.refresh(db_proveedor)
+    return db_proveedor

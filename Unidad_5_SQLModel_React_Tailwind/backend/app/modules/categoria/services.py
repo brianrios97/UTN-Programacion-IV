@@ -1,48 +1,49 @@
+from sqlmodel import Session, select
 from typing import List, Optional
-from .schemas import CategoriaCreate, CategoriaRead
-
-# Simulamos algunos registros iniciales
-db_categorias: List[CategoriaRead] = [
-    CategoriaRead(id=1, codigo="MUE-01", descripcion="Muebles de Oficina", activo=True),
-    CategoriaRead(id=2, codigo="ELE-02", descripcion="Electrónica", activo=True),
-]
-id_counter = 3
+from .models import Categoria, CategoriaCreate
 
 
-def crear(data: CategoriaCreate) -> CategoriaRead:
-    global id_counter
-    nueva = CategoriaRead(id=id_counter, **data.model_dump())
-    db_categorias.append(nueva)
-    id_counter += 1
-    return nueva
+# 1. Crear categoria (INSERT real en base de datos)
+def crear(session: Session, data: CategoriaCreate) -> Categoria:
+    db_categoria = Categoria.model_validate(data)
+    session.add(db_categoria)
+    session.commit()
+    session.refresh(db_categoria)
+    return db_categoria
 
 
-def obtener_todas(skip: int = 0, limit: int = 10) -> List[CategoriaRead]:
-    return db_categorias[skip : skip + limit]
+# 2. Listar con paginacion (SELECT con OFFSET y LIMIT)
+def obtener_todas(session: Session, skip: int = 0, limit: int = 10) -> List[Categoria]:
+    query = select(Categoria).offset(skip).limit(limit)
+    return list(session.exec(query).all())
 
 
-def obtener_por_id(id: int) -> Optional[CategoriaRead]:
-    for c in db_categorias:
-        if c.id == id:
-            return c
-    return None
+# 3. Buscar por ID (SELECT WHERE id = ...)
+def obtener_por_id(session: Session, id: int) -> Optional[Categoria]:
+    return session.get(Categoria, id)
 
 
-def actualizar_total(id: int, data: CategoriaCreate) -> Optional[CategoriaRead]:
-    for index, c in enumerate(db_categorias):
-        if c.id == id:
-            actualizada = CategoriaRead(id=id, **data.model_dump())
-            db_categorias[index] = actualizada
-            return actualizada
-    return None
+# 4. Actualizar total (UPDATE)
+def actualizar_total(session: Session, id: int, data: CategoriaCreate) -> Optional[Categoria]:
+    db_categoria = session.get(Categoria, id)
+    if not db_categoria:
+        return None
+    datos_nuevos = data.model_dump()
+    for key, value in datos_nuevos.items():
+        setattr(db_categoria, key, value)
+    session.add(db_categoria)
+    session.commit()
+    session.refresh(db_categoria)
+    return db_categoria
 
 
-def desactivar(id: int) -> Optional[CategoriaRead]:
-    for index, c in enumerate(db_categorias):
-        if c.id == id:
-            c_dict = c.model_dump()
-            c_dict["activo"] = False
-            actualizada = CategoriaRead(**c_dict)
-            db_categorias[index] = actualizada
-            return actualizada
-    return None
+# 5. Borrado logico (desactivar)
+def desactivar(session: Session, id: int) -> Optional[Categoria]:
+    db_categoria = session.get(Categoria, id)
+    if not db_categoria:
+        return None
+    db_categoria.activo = False
+    session.add(db_categoria)
+    session.commit()
+    session.refresh(db_categoria)
+    return db_categoria
